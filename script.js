@@ -1,69 +1,65 @@
-// script.js
+const apiUrl = window.location.origin;
 
-const baseURL = window.location.origin; // works both locally and on Render
+const tableBody = document.querySelector("#inventoryTable tbody");
+const form = document.getElementById("addForm");
 
-// Load items when the page starts
-async function loadItems() {
-  const response = await fetch(`${baseURL}/api/items`);
-  const items = await response.json();
+async function fetchItems() {
+  const res = await fetch(`${apiUrl}/items`);
+  const items = await res.json();
+  renderTable(items);
+}
 
-  const tableBody = document.getElementById('item-table-body');
-  tableBody.innerHTML = '';
-
+function renderTable(items) {
+  tableBody.innerHTML = "";
   items.forEach(item => {
-    const row = document.createElement('tr');
+    const row = document.createElement("tr");
     row.innerHTML = `
       <td>${item.id}</td>
-      <td>${item.name}</td>
-      <td>${item.quantity}</td>
-      <td>${item.price}</td>
-      <td><button onclick="deleteItem(${item.id})">Delete</button></td>
+      <td><input type="text" value="${item.name}" class="edit-name"></td>
+      <td><input type="number" value="${item.quantity}" class="edit-qty"></td>
+      <td><input type="number" value="${item.price}" class="edit-price"></td>
+      <td>
+        <button class="action-btn" onclick="updateItem(${item.id}, this)">💾 Save</button>
+        <button class="action-btn delete" onclick="deleteItem(${item.id})">🗑️ Delete</button>
+      </td>
     `;
     tableBody.appendChild(row);
   });
 }
 
-// Add new item
-async function addItem(event) {
-  event.preventDefault();
-  const name = document.getElementById('name').value.trim();
-  const quantity = document.getElementById('quantity').value;
-  const price = document.getElementById('price').value;
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("name").value;
+  const quantity = document.getElementById("quantity").value;
+  const price = document.getElementById("price").value;
 
-  if (!name || !quantity || !price) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  const response = await fetch(`${baseURL}/api/items`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  await fetch(`${apiUrl}/add`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ name, quantity, price })
   });
 
-  if (response.ok) {
-    document.getElementById('add-form').reset();
-    loadItems();
-  } else {
-    alert("Failed to add item");
-  }
-}
+  form.reset();
+  fetchItems();
+});
 
-// Delete item
-async function deleteItem(id) {
-  if (!confirm("Delete this item?")) return;
+async function updateItem(id, btn) {
+  const row = btn.closest("tr");
+  const name = row.querySelector(".edit-name").value;
+  const quantity = row.querySelector(".edit-qty").value;
+  const price = row.querySelector(".edit-price").value;
 
-  const response = await fetch(`${baseURL}/api/items/${id}`, {
-    method: 'DELETE'
+  await fetch(`${apiUrl}/update/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name, quantity, price })
   });
-
-  if (response.ok) {
-    loadItems();
-  } else {
-    alert("Failed to delete item");
-  }
+  fetchItems();
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', loadItems);
-document.getElementById('add-form').addEventListener('submit', addItem);
+async function deleteItem(id) {
+  await fetch(`${apiUrl}/delete/${id}`, { method: "DELETE" });
+  fetchItems();
+}
+
+fetchItems();
