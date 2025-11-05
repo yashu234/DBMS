@@ -1,72 +1,63 @@
 const express = require('express');
-const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors');
-
+const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-// Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname)); // serve index.html, script.js, style.css
 
-// Serve all files directly from current folder
-app.use(express.static(__dirname));
-
-// --- Database setup ---
-const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
-  if (err) console.error('Database error:', err);
+// connect to SQLite
+const db = new sqlite3.Database('./database.db', (err) => {
+  if (err) console.error('Database connection error:', err.message);
   else console.log('✅ Connected to SQLite database.');
 });
 
-// Create table if not exists
+// create table if not exists
 db.run(`
-  CREATE TABLE IF NOT EXISTS inventory (
+  CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    quantity INTEGER,
-    price REAL
+    name TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    price REAL NOT NULL
   )
 `);
 
-// --- API routes ---
+// ---- API ROUTES ----
 
-// Get all items
+// get all items
 app.get('/api/items', (req, res) => {
-  db.all('SELECT * FROM inventory', [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
+  db.all('SELECT * FROM items', [], (err, rows) => {
+    if (err) res.status(500).json({ error: err.message });
+    else res.json(rows);
   });
 });
 
-// Add item
+// add new item
 app.post('/api/items', (req, res) => {
   const { name, quantity, price } = req.body;
+  if (!name || !quantity || !price) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
   db.run(
-    'INSERT INTO inventory (name, quantity, price) VALUES (?, ?, ?)',
+    'INSERT INTO items (name, quantity, price) VALUES (?, ?, ?)',
     [name, quantity, price],
     function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: this.lastID, name, quantity, price });
+      if (err) res.status(500).json({ error: err.message });
+      else res.json({ id: this.lastID, name, quantity, price });
     }
   );
 });
 
-// Delete item
+// delete item
 app.delete('/api/items/:id', (req, res) => {
-  const id = req.params.id;
-  db.run('DELETE FROM inventory WHERE id = ?', [id], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ deleted: this.changes });
+  db.run('DELETE FROM items WHERE id = ?', [req.params.id], function (err) {
+    if (err) res.status(500).json({ error: err.message });
+    else res.json({ deletedID: req.params.id });
   });
 });
 
-// Serve frontend (index.html)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
+// start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
