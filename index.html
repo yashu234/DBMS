@@ -1,34 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inventory Management System</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Management</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Inventory Management System</h1>
+  <div class="container">
+    <h1>📦 Inventory Manager</h1>
 
-  <form id="add-form">
-    <input type="text" id="name" placeholder="Item Name" required>
-    <input type="number" id="quantity" placeholder="Quantity" required>
-    <input type="number" id="price" placeholder="Price" required>
-    <button type="submit">Add Item</button>
-  </form>
+    <form id="addForm">
+      <input type="text" id="name" placeholder="Item Name" required>
+      <input type="number" id="quantity" placeholder="Quantity" required>
+      <input type="number" id="price" placeholder="Price" step="0.01" required>
+      <button type="submit">Add Item</button>
+    </form>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Quantity</th>
-        <th>Price</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="item-table-body"></tbody>
-  </table>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
