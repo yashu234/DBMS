@@ -1,8 +1,10 @@
 // script.js
 
+const baseURL = window.location.origin; // works both locally and on Render
+
 // Load items when the page starts
 async function loadItems() {
-  const response = await fetch('/api/items');
+  const response = await fetch(`${baseURL}/api/items`);
   const items = await response.json();
 
   const tableBody = document.getElementById('item-table-body');
@@ -24,7 +26,7 @@ async function loadItems() {
 // Add new item
 async function addItem(event) {
   event.preventDefault();
-  const name = document.getElementById('name').value;
+  const name = document.getElementById('name').value.trim();
   const quantity = document.getElementById('quantity').value;
   const price = document.getElementById('price').value;
 
@@ -33,7 +35,7 @@ async function addItem(event) {
     return;
   }
 
-  const response = await fetch('/api/items', {
+  const response = await fetch(`${baseURL}/api/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, quantity, price })
@@ -42,6 +44,8 @@ async function addItem(event) {
   if (response.ok) {
     document.getElementById('add-form').reset();
     loadItems();
+  } else {
+    alert("Failed to add item");
   }
 }
 
@@ -49,15 +53,17 @@ async function addItem(event) {
 async function deleteItem(id) {
   if (!confirm("Delete this item?")) return;
 
-  const response = await fetch(`/api/items/${id}`, {
+  const response = await fetch(`${baseURL}/api/items/${id}`, {
     method: 'DELETE'
   });
 
   if (response.ok) {
     loadItems();
+  } else {
+    alert("Failed to delete item");
   }
 }
 
-// When page loads
+// Initialize
 document.addEventListener('DOMContentLoaded', loadItems);
 document.getElementById('add-form').addEventListener('submit', addItem);
