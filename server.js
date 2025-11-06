@@ -1,21 +1,15 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
-
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Middleware
 app.use(express.json());
-app.use(express.static(__dirname)); // Serves index.html, script.js, style.css
+app.use(express.static(__dirname));
 
-// Connect / create database
 const db = new sqlite3.Database("./database.db", (err) => {
-  if (err) console.error("❌ Database error:", err.message);
-  else console.log("✅ Connected to SQLite database.");
+  if (err) console.error(err.message);
 });
 
-// Create table if not exists
 db.run(`
   CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +19,6 @@ db.run(`
   )
 `);
 
-// API: Get all items
 app.get("/api/items", (req, res) => {
   db.all("SELECT * FROM items ORDER BY id DESC", [], (err, rows) => {
     if (err) res.status(500).json({ error: err.message });
@@ -33,11 +26,10 @@ app.get("/api/items", (req, res) => {
   });
 });
 
-// API: Add new item
 app.post("/api/items", (req, res) => {
   const { name, quantity, price } = req.body;
   if (!name || !quantity || !price)
-    return res.status(400).json({ error: "All fields are required" });
+    return res.status(400).json({ error: "All fields required" });
 
   db.run(
     "INSERT INTO items (name, quantity, price) VALUES (?, ?, ?)",
@@ -49,15 +41,25 @@ app.post("/api/items", (req, res) => {
   );
 });
 
-// API: Delete item
+app.put("/api/items/:id", (req, res) => {
+  const { name, quantity, price } = req.body;
+  db.run(
+    "UPDATE items SET name=?, quantity=?, price=? WHERE id=?",
+    [name, quantity, price, req.params.id],
+    function (err) {
+      if (err) res.status(500).json({ error: err.message });
+      else res.json({ updatedID: req.params.id });
+    }
+  );
+});
+
 app.delete("/api/items/:id", (req, res) => {
-  db.run("DELETE FROM items WHERE id = ?", [req.params.id], function (err) {
+  db.run("DELETE FROM items WHERE id=?", [req.params.id], function (err) {
     if (err) res.status(500).json({ error: err.message });
     else res.json({ deletedID: req.params.id });
   });
 });
 
-// Start server
 app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}\n🌐 Ready for Render deployment`)
+  console.log(`Server running on port ${PORT}`)
 );
