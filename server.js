@@ -1,59 +1,63 @@
-// ---------- server.js ----------
-
-// Import required packages
 const express = require("express");
-const cors = require("cors");
+const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ---------- MIDDLEWARE ----------
-app.use(cors());
+// Middleware
 app.use(express.json());
+app.use(express.static(__dirname)); // Serves index.html, script.js, style.css
 
-// ---------- TEMPORARY DATA STORAGE ----------
-let items = []; // In-memory (temporary) database
-
-// ---------- ROUTES ----------
-
-// 🟢 Default route
-app.get("/", (req, res) => {
-  res.send("✅ Server is running on Render successfully!");
+// Connect / create database
+const db = new sqlite3.Database("./database.db", (err) => {
+  if (err) console.error("❌ Database error:", err.message);
+  else console.log("✅ Connected to SQLite database.");
 });
 
-// 🟢 Add new data
-app.post("/add", (req, res) => {
-  const data = req.body;
-  items.push(data);
-  res.json({ message: "Item added successfully", data });
+// Create table if not exists
+db.run(`
+  CREATE TABLE IF NOT EXISTS items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    price REAL NOT NULL
+  )
+`);
+
+// API: Get all items
+app.get("/api/items", (req, res) => {
+  db.all("SELECT * FROM items ORDER BY id DESC", [], (err, rows) => {
+    if (err) res.status(500).json({ error: err.message });
+    else res.json(rows);
+  });
 });
 
-// 🟢 Get all data
-app.get("/data", (req, res) => {
-  res.json(items);
+// API: Add new item
+app.post("/api/items", (req, res) => {
+  const { name, quantity, price } = req.body;
+  if (!name || !quantity || !price)
+    return res.status(400).json({ error: "All fields are required" });
+
+  db.run(
+    "INSERT INTO items (name, quantity, price) VALUES (?, ?, ?)",
+    [name, quantity, price],
+    function (err) {
+      if (err) res.status(500).json({ error: err.message });
+      else res.json({ id: this.lastID, name, quantity, price });
+    }
+  );
 });
 
-// 🟢 Modify data (by index)
-app.put("/modify/:index", (req, res) => {
-  const { index } = req.params;
-  if (items[index]) {
-    items[index] = req.body;
-    res.json({ message: "Item modified successfully", data: items[index] });
-  } else {
-    res.status(404).json({ message: "Item not found" });
-  }
+// API: Delete item
+app.delete("/api/items/:id", (req, res) => {
+  db.run("DELETE FROM items WHERE id = ?", [req.params.id], function (err) {
+    if (err) res.status(500).json({ error: err.message });
+    else res.json({ deletedID: req.params.id });
+  });
 });
 
-// 🟢 Delete data (by index)
-app.delete("/delete/:index", (req, res) => {
-  const { index } = req.params;
-  if (items[index]) {
-    items.splice(index, 1);
-    res.json({ message: "Item deleted successfully" });
-  } else {
-    res.status(404).json({ message: "Item not found" });
-  }
-});
-
-// ---------- START SERVER ----------
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Start server
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}\n🌐 Ready for Render deployment`)
+);
