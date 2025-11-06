@@ -1,72 +1,78 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const bodyParser = require('body-parser');
-const cors = require('cors');
+// ---------- server.js ----------
+
+// Import required packages
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose"); // if you're using MongoDB
+require("dotenv").config(); // optional, only if using .env file
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10000; // Render will use its own PORT
 
+// ---------- MIDDLEWARE ----------
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(__dirname));
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Connect database
-const db = new sqlite3.Database('inventory.db', (err) => {
-    if (err) console.error('❌ Database error:', err);
-    else console.log('✅ Connected to SQLite database.');
+// ---------- DATABASE CONNECTION ----------
+// 🔹 OPTION 1: If you are using MongoDB Atlas
+// Change the connection string below with your own
+/*
+mongoose.connect(process.env.MONGO_URI || "your_mongo_connection_string_here", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ Connected to MongoDB"))
+.catch((err) => console.error("❌ MongoDB connection failed:", err));
+*/
+
+// 🔹 OPTION 2: If NOT using database, comment out Mongo part above
+// and you can store data in a temporary array instead
+let items = []; // temporary in-memory storage
+
+// ---------- ROUTES ----------
+
+// 🟢 Home route
+app.get("/", (req, res) => {
+  res.send("✅ Server is running successfully on Render!");
 });
 
-// Create table if not exists
-db.run(`
-CREATE TABLE IF NOT EXISTS inventory (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    quantity INTEGER NOT NULL,
-    price REAL NOT NULL
-)
-`);
-
-// ➕ Add new item
-app.post('/add', (req, res) => {
-    const { name, quantity, price } = req.body;
-    db.run('INSERT INTO inventory (name, quantity, price) VALUES (?, ?, ?)',
-        [name, quantity, price],
-        (err) => {
-            if (err) return res.status(500).send('Error adding item');
-            res.send('Item added');
-        }
-    );
+// 🟢 Add data
+app.post("/add", (req, res) => {
+  const newItem = req.body;
+  items.push(newItem);
+  res.json({ message: "Item added successfully!", data: newItem });
 });
 
-// 📦 Fetch all items
-app.get('/items', (req, res) => {
-    db.all('SELECT * FROM inventory', [], (err, rows) => {
-        if (err) return res.status(500).send('Error fetching items');
-        res.json(rows);
-    });
+// 🟢 Get all data
+app.get("/data", (req, res) => {
+  res.json(items);
 });
 
-// ✏️ Update item
-app.put('/update/:id', (req, res) => {
-    const { id } = req.params;
-    const { name, quantity, price } = req.body;
-    db.run('UPDATE inventory SET name=?, quantity=?, price=? WHERE id=?',
-        [name, quantity, price, id],
-        function (err) {
-            if (err) return res.status(500).send('Error updating item');
-            res.send('Item updated');
-        }
-    );
+// 🟢 Modify data (example: update by index)
+app.put("/modify/:index", (req, res) => {
+  const index = req.params.index;
+  if (items[index]) {
+    items[index] = req.body;
+    res.json({ message: "Item modified successfully!", data: items[index] });
+  } else {
+    res.status(404).json({ message: "Item not found" });
+  }
 });
 
-// ❌ Delete item
-app.delete('/delete/:id', (req, res) => {
-    const { id } = req.params;
-    db.run('DELETE FROM inventory WHERE id=?', [id], function (err) {
-        if (err) return res.status(500).send('Error deleting item');
-        res.send('Item deleted');
-    });
+// 🟢 Delete data
+app.delete("/delete/:index", (req, res) => {
+  const index = req.params.index;
+  if (items[index]) {
+    items.splice(index, 1);
+    res.json({ message: "Item deleted successfully!" });
+  } else {
+    res.status(404).json({ message: "Item not found" });
+  }
 });
 
-// Start server
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// ---------- START SERVER ----------
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
