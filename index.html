@@ -3,34 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inventory Management</title>
+  <title>Inventory Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <h1>📦 Inventory Manager</h1>
+  <div class="app">
+    <header>
+      <h1>📦 Inventory Dashboard</h1>
+      <button id="themeToggle" title="Switch Theme">🌙</button>
+    </header>
 
-    <form id="addForm">
-      <input type="text" id="name" placeholder="Item Name" required />
-      <input type="number" id="quantity" placeholder="Quantity" required />
-      <input type="number" id="price" placeholder="Price" step="0.01" required />
-      <button type="submit">Add Item</button>
-    </form>
+    <section class="form-section">
+      <form id="addForm">
+        <input type="text" id="name" placeholder="Item Name" required />
+        <input type="number" id="quantity" placeholder="Quantity" required />
+        <input type="number" id="price" placeholder="Price" step="0.01" required />
+        <button type="submit" class="add-btn">➕ Add Item</button>
+      </form>
+    </section>
 
-    <input type="text" id="searchBar" placeholder="🔍 Search by name..." />
+    <section class="search-section">
+      <input type="text" id="searchBar" placeholder="🔍 Search items by name..." />
+    </section>
 
-    <table id="inventoryTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Qty</th>
-          <th>Price</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <section class="table-section">
+      <table id="inventoryTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
   </div>
 
   <script src="script.js"></script>
