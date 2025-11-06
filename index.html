@@ -3,38 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inventory Management System</title>
+  <title>Inventory Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Inventory Management System</h1>
-
-  <form id="add-form">
-    <input type="text" id="name" placeholder="Item Name" required />
-    <input type="number" id="quantity" placeholder="Quantity" required />
-    <input type="number" id="price" placeholder="Price" required />
-    <button type="submit" id="submit-btn">Add Item</button>
-    <button type="button" id="cancel-edit" style="display:none;">Cancel Edit</button>
-  </form>
+  <header>
+    <h1>📦 Inventory Dashboard</h1>
+    <button id="openModal">＋ Add Item</button>
+  </header>
 
   <div id="search-container">
-    <input type="text" id="search" placeholder="Search item..." onkeyup="filterItems()" />
+    <input type="text" id="search" placeholder="🔍 Search items..." onkeyup="filterItems()" />
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Quantity</th>
-        <th>Price</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="item-table-body"></tbody>
-  </table>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="item-table-body"></tbody>
+    </table>
+  </div>
 
   <div id="total-value"></div>
+
+  <div id="itemModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle">Add Item</h2>
+      <form id="add-form">
+        <input type="text" id="name" placeholder="Item Name" required />
+        <input type="number" id="quantity" placeholder="Quantity" required />
+        <input type="number" id="price" placeholder="Price" required />
+        <button type="submit" id="submit-btn">Add</button>
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
