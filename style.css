@@ -69,3 +69,15 @@ tr:hover {
   font-weight: bold;
   color: #0078d7;
 }
+
+button + button {
+  margin-left: 4px;
+}
+
+#cancel-edit {
+  background-color: #aaa;
+}
+
+#cancel-edit:hover {
+  background-color: #888;
+}
